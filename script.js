@@ -1,366 +1,322 @@
-// --- SISTEMA DE ÁUDIO WEB API ---
+// --- AUDIO & CONFIG ---
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
 function playSound(type) {
     if (audioCtx.state === 'suspended') audioCtx.resume();
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
+    osc.connect(gain); gain.connect(audioCtx.destination);
     const now = audioCtx.currentTime;
-
-    if (type === 'tick') {
-        osc.frequency.setValueAtTime(800, now);
-        gain.gain.setValueAtTime(0.05, now);
-        osc.start(now);
-        osc.stop(now + 0.05);
-    }
-    else if (type === 'stop') {
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(600, now);
-        osc.frequency.linearRampToValueAtTime(200, now + 0.6);
-        gain.gain.setValueAtTime(0.2, now);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.6);
-        osc.start(now);
-        osc.stop(now + 0.6);
-    }
-    else if (type === 'win') {
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(440, now);
-        osc.frequency.setValueAtTime(554, now + 0.1); // C#
-        osc.frequency.setValueAtTime(659, now + 0.2); // E
-        gain.gain.setValueAtTime(0.1, now);
-        gain.gain.linearRampToValueAtTime(0, now + 0.8);
-        osc.start(now);
-        osc.stop(now + 0.8);
-    }
+    if (type === 'tick') { osc.frequency.setValueAtTime(800, now); gain.gain.setValueAtTime(0.05, now); osc.start(now); osc.stop(now + 0.05); }
+    else if (type === 'spin') { osc.type = 'triangle'; osc.frequency.setValueAtTime(200, now); gain.gain.setValueAtTime(0.1, now); osc.start(now); osc.stop(now + 0.08); }
+    else if (type === 'win') { osc.type = 'triangle'; osc.frequency.setValueAtTime(500, now); gain.gain.linearRampToValueAtTime(0, now + 1); osc.start(now); osc.stop(now + 1); }
 }
 
-// --- DATABASE DE TEMAS ---
-const themesDB = {
-    classico: ["Nome", "CEP (Lugar)", "Animal", "Cor", "Objeto", "Fruta/Comida", "Profissão", "Marca", "Filme/Série", "Adjetivo"],
-    futebol: ["Time Brasil", "Time Europa", "Jogador Atual", "Lenda (Aposentado)", "Técnico", "Estádio", "Gíria Bola", "País Copa", "Marca Esporte", "Posição"],
-    geek: ["Super-Herói", "Vilão", "Videogame", "Anime/Desenho", "App/Site", "Personagem Star Wars", "Linguagem Prog", "Youtuber", "Filme Sci-Fi", "Gadget"],
-    zoeira: ["Minha Sogra é...", "Motivo Divórcio", "Cheiro de...", "Nome de Totó", "Coisa que Gruda", "Presente Ruim", "Sabor Pizza Bizarro", "Lugar Esconderijo", "Medo Bobo", "Desculpa Atraso"],
-    impossivel: ["Elemento Químico", "Capital País", "Raça Cão", "Parte do Corpo", "Instrumento Musical", "Marca Carro Luxo", "Nome de Flor", "Doença", "Palavra Inglês", "Escritor Famoso"]
-};
+const aiDict = { cores: ["azul", "amarelo", "amarela", "vermelho", "vermelha", "verde", "violeta", "vinho", "branco", "branca", "bege", "bordo", "ciano", "cinza", "dourado", "fucsia", "indigo", "laranja", "lilas", "marrom", "magenta", "preto", "preta", "prata", "rosa", "roxo", "roxa", "salmao", "turquesa", "ocre", "caramelo", "creme", "gelo", "musgo", "oliva", "pessego", "sepia", "terracota"], animais: ["abelha", "aguia", "anta", "arara", "baleia", "boi", "bode", "borboleta", "bufalo", "burro", "cabra", "cachorro", "camelo", "canguru", "cavalo", "capivara", "coelho", "cobra", "coruja", "crocodilo", "dinossauro", "dragao", "elefante", "esquilo", "falcao", "foca", "formiga", "gato", "galo", "galinha", "gaviao", "girafa", "gorila", "hipopotamo", "hiena", "hamster", "iguana", "jacare", "jabuti", "javali", "joaninha", "leao", "leopardo", "lhama", "lobo", "lula", "macaco", "mamute", "morcego", "mosca", "naja", "onca", "orangotango", "ovelha", "panda", "pantera", "pato", "pavao", "peixe", "peru", "pinguim", "polvo", "pombo", "porco", "preguica", "quati", "raposa", "rato", "rinoceronte", "sapo", "sardinha", "tamandua", "tartaruga", "tatu", "tigre", "tubarao", "tucano", "urso", "urubu", "vaca", "veado", "zebra"], frutas: ["abacate", "abacaxi", "acerola", "ameixa", "amora", "banana", "cacau", "caju", "caqui", "carambola", "cereja", "coco", "cupuacu", "damasco", "figo", "framboesa", "goiaba", "graviola", "groselha", "jabuticaba", "jaca", "kiwi", "laranja", "limao", "lima", "maca", "mamao", "manga", "maracuja", "melancia", "melao", "mexerica", "mirtilo", "morango", "pera", "pessego", "pitanga", "roma", "tamarindo", "tangerina", "uva"], lugares: ["acre", "alagoas", "amapa", "amazonas", "bahia", "ceara", "distrito federal", "espirito santo", "goias", "maranhao", "mato grosso", "mato grosso do sul", "minas gerais", "para", "paraiba", "parana", "pernambuco", "piaui", "rio de janeiro", "rio grande do norte", "rio grande do sul", "rondonia", "roraima", "santa catarina", "sao paulo", "sergipe", "tocantins", "aracaju", "belem", "belo horizonte", "boa vista", "brasilia", "campo grande", "cuiaba", "curitiba", "florianopolis", "fortaleza", "goiania", "joao pessoa", "macapa", "maceio", "manaus", "natal", "palmas", "porto alegre", "porto velho", "recife", "rio branco", "salvador", "sao luis", "teresina", "vitoria", "brasil", "argentina", "chile", "uruguai", "paraguai", "bolivia", "peru", "colombia", "venezuela", "equador", "estados unidos", "canada", "mexico", "espanha", "portugal", "franca", "italia", "alemanha", "inglaterra", "japao", "china", "russia", "australia", "africa do sul", "angola"], nomes: ["alice", "amanda", "ana", "andre", "antonio", "arthur", "beatriz", "bernardo", "bianca", "bruna", "bruno", "caio", "camila", "carlos", "carol", "catarina", "cecilia", "cesar", "clara", "claudio", "daniel", "daniela", "davi", "david", "debora", "diego", "diogo", "douglas", "eduarda", "eduardo", "elias", "elisa", "emanuel", "enzo", "erick", "esther", "fabio", "fabricio", "felipe", "fernanda", "fernando", "flavia", "gabriel", "gabriela", "giovana", "guilherme", "gustavo", "heitor", "helena", "henrique", "hugo", "igor", "isabela", "isadora", "isis", "joao", "joana", "jonas", "jorge", "jose", "julia", "juliana", "julio", "kamila", "karina", "kauan", "kevin", "larissa", "laura", "lavinia", "leonardo", "leticia", "livia", "lorena", "lorenzo", "lucas", "lucca", "luana", "luis", "luiza", "maite", "manuela", "marcela", "marcelo", "marcos", "maria", "mariana", "marina", "matheus", "melissa", "miguel", "murilo", "natalia", "nicolas", "nicole", "olivia", "otavio", "paola", "paulo", "pedro", "pietra", "rafael", "rafaela", "raissa", "rebeca", "renan", "renata", "ricardo", "roberto", "rodrigo", "rogerio", "ryan", "samuel", "sarah", "sergio", "sophia", "stefany", "tatiane", "theo", "thiago", "thomas", "tiago", "tomaz", "valentina", "vanessa", "vicente", "vinicius", "vitor", "vitoria", "vivian", "willian", "yasmin", "yuri"], objetos: ["anel", "apito", "armario", "bacia", "banco", "balde", "bola", "boneca", "borracha", "botao", "brinco", "cadeira", "caderno", "caixa", "caneta", "caneca", "carro", "celular", "chave", "colher", "computador", "copo", "dado", "dente", "diamante", "disco", "escada", "escova", "espelho", "faca", "fita", "fogao", "foice", "garfo", "garrafa", "gaveta", "geladeira", "janela", "jarra", "joia", "lampada", "lapis", "livro", "lixeira", "luva", "mala", "martelo", "mesa", "mochila", "moeda", "mola", "navio", "oculos", "ovo", "panela", "papel", "pedra", "pente", "pia", "pilha", "pincel", "pipa", "porta", "prato", "prego", "quadro", "queijo", "radio", "relogio", "remo", "roda", "roupa", "sabao", "sacola", "sapato", "sino", "sofa", "taca", "tapete", "teclado", "televisao", "tesoura", "tijolo", "toalha", "torneira", "vaso", "vela", "vidro", "violao", "xadrez", "xicara", "ziper"], futebol_times: ["flamengo", "corinthians", "palmeiras", "sao paulo", "vasco", "santos", "gremio", "internacional", "atletico mineiro", "cruzeiro", "botafogo", "fluminense", "bahia", "vitoria", "sport", "ceara", "fortaleza", "real madrid", "barcelona", "liverpool", "manchester united", "city", "psg", "bayern", "juventus", "milan", "chelsea", "arsenal", "boca juniors", "river plate"], futebol_jogadores: ["neymar", "messi", "cristiano ronaldo", "pele", "maradona", "zico", "ronaldo", "ronaldinho", "rivaldo", "romario", "kaká", "bebeto", "garrincha", "socrates", "vinicius junior", "rodrigo", "richarlison", "alisson", "ederson", "casemiro", "modric", "mbappe", "haaland", "lewandowski", "benzema", "salah", "de bruyne", "kane"], futebol_estadios: ["maracana", "itaquerao", "morumbi", "mineirao", "beira rio", "arena do gremio", "fonte nova", "castelao", "mane garrincha", "allianz parque", "sao januario", "vila belmiro", "camp nou", "bernabeu", "wembley", "old trafford", "anfield", "san siro"], geek_herois: ["homem aranha", "batman", "superman", "mulher maravilha", "thor", "hulk", "capitao america", "homem de ferro", "viuva negra", "flash", "aquaman", "wolverine", "deadpool", "pantera negra", "doutor estranho", "naruto", "goku", "luffy", "ichigo", "saitama", "deku", "tanjiro", "edward elric", "pikachu"], geek_games: ["mario", "zelda", "sonic", "pokemon", "minecraft", "fortnite", "gta", "call of duty", "fifa", "league of legends", "dota", "valorant", "cs go", "overwatch", "the last of us", "god of war", "halo", "resident evil", "final fantasy", "street fighter", "mortal kombat", "tetris", "pacman"], geek_vilao: ["coringa", "thanos", "darth vader", "voldemort", "bowser", "ganondorf", "sephiroth", "freeza", "cell", "madara", "dio", "team rocket", "magneto", "loki", "ultron", "venom", "duende verde", "lex luthor"] };
+const categoryMap = { "Nome": "nomes", "CEP": "lugares", "Animal": "animais", "Cor": "cores", "Objeto": "objetos", "Fruta/Comida": "frutas", "Comida": "frutas", "Time": "futebol_times", "Jogador": "futebol_jogadores", "Lenda": "futebol_jogadores", "Estádio": "futebol_estadios", "País": "lugares", "Herói": "geek_herois", "Vilão": "geek_vilao", "Game": "geek_games", "Anime": "geek_herois", "Personagem": "geek_herois" };
+const themesDB = { classico: ["Nome", "CEP", "Animal", "Cor", "Objeto", "Fruta/Comida", "Profissão", "Marca"], futebol: ["Time", "Jogador", "Lenda", "Técnico", "Estádio", "Gíria", "País", "Marca Esportiva"], geek: ["Herói", "Vilão", "Game", "Anime", "App", "Star Wars", "Tech", "Filme Sci-Fi"], zoeira: ["Sogra", "Divórcio", "Cheiro de", "Totó", "Gruda", "Presente Ruim", "Pizza Bizarra", "Medo"] };
 
-// --- CONFIGURAÇÃO P2P (Google STUN) ---
-const peer = new Peer(null, {
-    config: { 'iceServers': [{ url: 'stun:stun.l.google.com:19302' }] },
-    debug: 1
-});
-
-// ESTADO GLOBAL
-let myId = null;
-let myName = "Player";
-let myAvatar = "😎";
-let isHost = false;
-let connections = []; // Apenas Host usa
-let players = [];
-let receivedScores = 0;
-let currentMode = 'classico';
+// ESTADO
+let peer, myId, myName = "Player", myAvatar = "😎", isHost = false, isSolo = false;
+let connections = [], players = [], currentMode = 'classico';
 let gameInterval;
+let allPlayerAnswers = [], judgmentQueue = [], currentVote = null, voteCounts = { yes: 0, no: 0, total: 0 };
 
-// --- PEERJS EVENTS ---
-peer.on('open', (id) => {
-    myId = id;
-    console.log("ID Gerado:", id);
-});
-
-peer.on('connection', (conn) => {
-    connections.push(conn);
-    conn.on('data', (data) => {
-        if (isHost) handleHostData(data, conn);
+// --- INIT ---
+function initPeer() {
+    if (peer) peer.destroy();
+    peer = new Peer(null, { config: { 'iceServers': [{ url: 'stun:stun.l.google.com:19302' }] } });
+    peer.on('open', id => { myId = id; document.querySelector('.code-display span').innerText = id; });
+    peer.on('connection', conn => {
+        connections.push(conn);
+        conn.on('data', d => handleData(d, conn));
+        conn.on('close', () => { players = players.filter(p => p.id !== conn.peer); broadcast({ type: 'UPDATE_PLAYERS', players }); renderPlayers(); });
     });
-    conn.on('close', () => {
-        players = players.filter(p => p.id !== conn.peer);
-        broadcast({ type: 'UPDATE_PLAYERS', players });
-    });
-});
+}
+initPeer();
 
-// --- UI LOGIC ---
-function selectAvatar(av) {
-    myAvatar = av;
-    document.querySelectorAll('.avatar-opt').forEach(e => e.classList.remove('selected'));
-    event.currentTarget.classList.add('selected');
+// --- UI ---
+function switchScreen(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+function goToLobby() { myName = document.getElementById('my-name').value || "Player"; switchScreen('screen-lobby'); document.getElementById('lobby-setup').classList.remove('hidden'); document.getElementById('lobby-room').classList.add('hidden'); }
+function selectAvatar(av) { myAvatar = av; document.querySelectorAll('.avatar-opt').forEach(e => e.classList.remove('selected')); event.currentTarget.classList.add('selected'); }
+
+// --- LOGICA SALA ---
+function createRoom() { isHost = true; isSolo = false; setupLobby(); players = [{ id: myId, name: myName, avatar: myAvatar, score: 0 }]; renderPlayers(); }
+function startSoloGame() { isHost = true; isSolo = true; setupLobby(); players = [{ id: myId, name: myName, avatar: myAvatar, score: 0 }, { id: 'bot', name: 'Bot 🤖', avatar: '🤖', score: 0 }]; renderPlayers(); }
+function setupLobby() { document.getElementById('lobby-setup').classList.add('hidden'); document.getElementById('lobby-room').classList.remove('hidden'); document.getElementById('host-controls').classList.remove('hidden'); }
+function joinRoom() { const c = document.getElementById('room-code-input').value.trim(); if (!c) return; isHost = false; isSolo = false; const conn = peer.connect(c); conn.on('open', () => { conn.send({ type: 'JOIN', name: myName, avatar: myAvatar }); document.getElementById('lobby-setup').classList.add('hidden'); document.getElementById('lobby-room').classList.remove('hidden'); document.getElementById('host-controls').classList.add('hidden'); document.getElementById('guest-waiting').classList.remove('hidden'); }); conn.on('data', handleData); peer.hostConn = conn; }
+function renderPlayers() { document.getElementById('players-grid').innerHTML = players.map(p => `<div class="player-chip ${p.id === myId ? 'me' : ''}"><span class="av">${p.avatar}</span><span>${p.name}</span></div>`).join(''); document.getElementById('player-count').innerText = players.length; }
+
+// --- DATA ---
+function broadcast(data) { if (isHost && !isSolo) connections.forEach(c => c.send(data)); }
+function handleData(data, conn) {
+    if (isHost) {
+        if (data.type === 'JOIN') { players.push({ id: conn.peer, name: data.name, avatar: data.avatar, score: 0 }); broadcast({ type: 'UPDATE_PLAYERS', players }); renderPlayers(); }
+        else if (data.type === 'STOP') { broadcast({ type: 'GAME_OVER', name: data.name }); endGameLogic(data.name); }
+        else if (data.type === 'ANSWERS') {
+            if (!allPlayerAnswers.find(a => a.id === data.id)) allPlayerAnswers.push(data);
+            if (allPlayerAnswers.length >= players.length - (isSolo ? 0 : 0)) startTribunal();
+        }
+        else if (data.type === 'VOTE') {
+            if (data.vote) voteCounts.yes++; else voteCounts.no++;
+            voteCounts.total++;
+            if (voteCounts.total >= players.length) finishVote();
+        }
+        // RECEBE A CONFIRMAÇÃO DE SCORE
+        else if (data.type === 'SCORE_CONFIRM') {
+            const p = players.find(x => x.id === data.id);
+            if (p) { p.score += data.pts; p.submitted = true; }
+            checkAllScores(); // VERIFICA SE TODOS DERAM OK
+        }
+    } else {
+        if (data.type === 'UPDATE_PLAYERS') { players = data.players; renderPlayers(); }
+        else if (data.type === 'START') { startGame(data.letter, data.themes); }
+        else if (data.type === 'ROULETTE') { showRoulette(data.letter); }
+        else if (data.type === 'GAME_OVER') { sendMyAnswers(); }
+        else if (data.type === 'VOTE_START') { showVoting(data.word, data.theme, data.author); }
+        else if (data.type === 'RESULTS') { showResults(data.data); }
+        else if (data.type === 'SHOW_RANKING') { showRanking(data.players); }
+    }
 }
 
-function goToLobby() {
-    // Tenta iniciar audio context no clique do usuário
-    if (audioCtx.state === 'suspended') audioCtx.resume();
-
-    const nameInput = document.getElementById('my-name').value.trim();
-    if (!nameInput) return alert("Coloque um nome!");
-
-    myName = nameInput;
-    document.getElementById('my-avatar-display').innerText = myAvatar;
-    document.getElementById('my-name-display').innerText = myName;
-
-    switchScreen('screen-lobby');
-}
-
-function switchScreen(id) {
-    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
-}
-
-// --- HOST LOGIC ---
-function createRoom() {
-    isHost = true;
-    document.getElementById('lobby-setup').classList.add('hidden');
-    document.getElementById('lobby-room').classList.remove('hidden');
-    document.getElementById('host-controls').classList.remove('hidden');
-    document.getElementById('display-room-id').innerText = myId;
-
-    players = [{ id: myId, name: myName, avatar: myAvatar, score: 0 }];
-    renderPlayers();
-}
-
-function setMode(mode) {
-    currentMode = mode;
-    document.querySelectorAll('.mode-pill').forEach(b => b.classList.remove('selected'));
-    event.currentTarget.classList.add('selected');
-}
+// --- JOGO ---
+function setMode(m) { currentMode = m; document.querySelectorAll('.mode-pill').forEach(b => b.classList.remove('selected')); event.currentTarget.classList.add('selected'); }
 
 function hostStartGame() {
-    if (players.length < 2) return alert("Precisa de pelo menos 2 jogadores!");
-
-    const alphabet = "ABCDEFGHILMNOPQRSTUVZ";
-    const letter = alphabet[Math.floor(Math.random() * alphabet.length)];
+    const abc = "ABCDEFGHILMNOPQRSTUVZ";
+    const letter = abc[Math.floor(Math.random() * abc.length)];
     const themes = themesDB[currentMode];
 
-    // Embaralha para Zoeira/Impossivel
-    const finalThemes = (currentMode === 'zoeira' || currentMode === 'impossivel')
-        ? themes.sort(() => 0.5 - Math.random()).slice(0, 8)
-        : themes;
+    // Reseta flags de submissão
+    players.forEach(p => p.submitted = false);
 
-    broadcast({ type: 'START_ROUND', letter, themes: finalThemes });
-    startGame(letter, finalThemes);
-}
+    broadcast({ type: 'ROULETTE', letter: letter });
 
-// --- GUEST LOGIC ---
-function joinRoom() {
-    if (audioCtx.state === 'suspended') audioCtx.resume();
-
-    const code = document.getElementById('room-code-input').value.trim();
-    if (!code) return alert("Cole o código!");
-
-    isHost = false;
-    const conn = peer.connect(code);
-
-    conn.on('open', () => {
-        conn.send({ type: 'JOIN', name: myName, avatar: myAvatar });
-        document.getElementById('lobby-setup').classList.add('hidden');
-        document.getElementById('lobby-room').classList.remove('hidden');
-        document.getElementById('guest-waiting').classList.remove('hidden');
-        document.getElementById('display-room-id').innerText = code;
+    // Animação no Host também
+    showRoulette(letter, () => {
+        broadcast({ type: 'START', letter: letter, themes: themes });
+        startGame(letter, themes);
     });
-
-    conn.on('data', handleGuestData);
-    peer.hostConn = conn; // Salva para uso futuro
 }
 
-// --- DATA HANDLING ---
-function broadcast(data) {
-    if (!isHost) return;
-    connections.forEach(c => c.send(data));
+function showRoulette(finalLetter, callback) {
+    switchScreen('screen-roulette');
+    const display = document.getElementById('roulette-letter');
+    const abc = "ABCDEFGHILMNOPQRSTUVZ";
+    let speed = 50;
+    let cycles = 0;
+
+    const spinLoop = () => {
+        display.innerText = abc[Math.floor(Math.random() * abc.length)];
+        playSound('spin');
+        if (cycles > 20) speed += 20;
+        if (speed > 400) {
+            display.innerText = finalLetter;
+            playSound('win');
+            // Dá tempo de ver a letra antes de começar
+            setTimeout(() => { if (callback) callback(); }, 2000);
+        } else {
+            cycles++;
+            setTimeout(spinLoop, speed);
+        }
+    };
+    spinLoop();
 }
 
-function handleHostData(data, conn) {
-    switch (data.type) {
-        case 'JOIN':
-            players.push({ id: conn.peer, name: data.name, avatar: data.avatar, score: 0 });
-            broadcast({ type: 'UPDATE_PLAYERS', players });
-            renderPlayers();
-            break;
-        case 'STOP_SIGNAL':
-            broadcast({ type: 'GAME_OVER', stopper: data.name });
-            handleGameOver(data.name);
-            break;
-        case 'SUBMIT_SCORE':
-            const p = players.find(x => x.id === data.id);
-            if (p) p.score += data.points;
-            receivedScores++;
-            checkAllScoresReceived();
-            break;
-    }
-}
-
-function handleGuestData(data) {
-    switch (data.type) {
-        case 'UPDATE_PLAYERS':
-            players = data.players;
-            renderPlayers();
-            break;
-        case 'START_ROUND':
-            startGame(data.letter, data.themes);
-            break;
-        case 'GAME_OVER':
-            handleGameOver(data.stopper);
-            break;
-        case 'SHOW_RANKING':
-            showRanking(data.players);
-            break;
-        case 'COOLDOWN':
-            document.getElementById('cooldown-timer').innerText = data.sec;
-            break;
-    }
-}
-
-// --- GAMEPLAY ---
-function startGame(letter, themes) {
+function startGame(l, t) {
     switchScreen('screen-game');
-    document.getElementById('game-letter').innerText = letter;
-
-    const form = document.getElementById('game-form');
-    form.innerHTML = '';
-    themes.forEach(t => {
-        form.innerHTML += `
-            <div class="game-input-group">
-                <label>${t}</label>
-                <input type="text" data-theme="${t}" autocomplete="off">
-            </div>
-        `;
-    });
-
-    // Timer
-    let sec = 0;
-    const maxTime = 120;
-    clearInterval(gameInterval);
-
-    gameInterval = setInterval(() => {
-        sec++;
-        playSound('tick'); // Som do relógio
-        const m = Math.floor(sec / 60);
-        const s = sec % 60;
-        document.getElementById('game-timer').innerText = `${m}:${s < 10 ? '0' + s : s}`;
-
-        const pct = Math.max(0, 100 - (sec / maxTime) * 100);
-        document.getElementById('progress-fill').style.width = `${pct}%`;
-    }, 1000);
+    document.getElementById('game-letter').innerText = l;
+    const f = document.getElementById('game-form'); f.innerHTML = '';
+    t.forEach(th => f.innerHTML += `<div class="game-input-group"><label>${th}</label><input type="text" data-theme="${th}" autocomplete="off"></div>`);
+    let s = 0; clearInterval(gameInterval);
+    gameInterval = setInterval(() => { s++; document.getElementById('game-timer').innerText = s; document.getElementById('progress-fill').style.width = `${Math.max(0, 100 - s)}%`; }, 1000);
 }
+function sendStop() { if (isHost) { broadcast({ type: 'GAME_OVER', name: myName }); endGameLogic(myName); } else peer.hostConn.send({ type: 'STOP', name: myName }); }
 
-function sendStop() {
+// --- FIM DE RODADA ---
+function endGameLogic(stopperName) {
+    clearInterval(gameInterval);
+    if (navigator.vibrate) navigator.vibrate(500);
+    switchScreen('screen-ai');
+    document.getElementById('loading-msg').innerText = "Coletando...";
+
     if (isHost) {
-        broadcast({ type: 'GAME_OVER', stopper: myName });
-        handleGameOver(myName);
+        allPlayerAnswers = [];
+        const myAns = getInputs();
+        allPlayerAnswers.push({ id: myId, answers: myAns });
+
+        if (isSolo) {
+            allPlayerAnswers.push({ id: 'bot', answers: [{ theme: 'Nome', val: 'Bot', letter: 'X' }] });
+            setTimeout(startTribunal, 1000);
+        } else {
+            setTimeout(() => {
+                if (allPlayerAnswers.length < players.length) startTribunal();
+            }, 4000);
+        }
     } else {
-        peer.hostConn.send({ type: 'STOP_SIGNAL', name: myName });
+        sendMyAnswers();
     }
 }
 
-function handleGameOver(stopperName) {
-    clearInterval(gameInterval);
-    playSound('stop'); // Som de STOP
+function getInputs() {
+    const l = document.getElementById('game-letter').innerText;
+    let arr = [];
+    document.querySelectorAll('#game-form input').forEach(i => arr.push({ theme: i.dataset.theme, val: i.value.trim(), letter: l }));
+    return arr;
+}
 
-    if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-    alert(`🛑 STOP! ${stopperName} parou o tempo!`);
+function sendMyAnswers() {
+    switchScreen('screen-ai');
+    document.getElementById('loading-msg').innerText = "Aguardando Tribunal...";
+    if (peer.hostConn) peer.hostConn.send({ type: 'ANSWERS', id: myId, answers: getInputs() });
+}
 
-    // Check List
-    const list = document.getElementById('check-list');
-    list.innerHTML = '';
-    const letter = document.getElementById('game-letter').innerText;
-
-    document.querySelectorAll('#game-form input').forEach(inp => {
-        const val = inp.value.trim();
-        const isValid = val.toUpperCase().startsWith(letter);
-
-        list.innerHTML += `
-            <div class="check-row">
-                <div style="flex:1">
-                    <div style="font-size:0.8rem; color:#94a3b8">${inp.dataset.theme}</div>
-                    <div style="font-size:1.1rem; color:${val ? 'white' : '#555'}">${val || '---'}</div>
-                </div>
-                <input type="checkbox" class="check-toggle" ${isValid && val ? 'checked' : ''}>
-            </div>
-        `;
+// --- TRIBUNAL ---
+function startTribunal() {
+    judgmentQueue = [];
+    allPlayerAnswers.forEach(pData => {
+        pData.answers.forEach(ans => {
+            const status = analyze(ans.val, ans.letter, ans.theme);
+            ans.status = status;
+            if (status === 'warn') judgmentQueue.push({ word: ans.val, theme: ans.theme, author: players.find(p => p.id === pData.id)?.name || "Alguém", ref: ans });
+        });
     });
+    if (judgmentQueue.length > 0) nextVote(); else finishTribunal();
+}
+
+function analyze(word, letter, theme) {
+    if (!word) return 'empty';
+    const clean = word.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    if (!clean.startsWith(letter.toLowerCase())) return 'invalid';
+    let key = categoryMap[theme];
+    if (key && aiDict[key]) { if (aiDict[key].includes(clean)) return 'valid'; return 'warn'; }
+    return 'warn';
+}
+
+function nextVote() {
+    if (judgmentQueue.length === 0) { finishTribunal(); return; }
+    currentVote = judgmentQueue.shift();
+    voteCounts = { yes: 0, no: 0, total: 0 };
+    const payload = { type: 'VOTE_START', word: currentVote.word, theme: currentVote.theme, author: currentVote.author };
+    broadcast(payload);
+    showVoting(payload.word, payload.theme, payload.author);
+}
+
+function showVoting(w, t, a) {
+    switchScreen('screen-voting');
+    document.getElementById('vote-word').innerText = w;
+    document.getElementById('vote-theme').innerText = t;
+    document.getElementById('vote-player-name').innerText = a;
+    const bar = document.getElementById('vote-progress');
+    bar.style.width = '100%'; setTimeout(() => bar.style.width = '0%', 50);
+}
+
+function castVote(verdict) {
+    switchScreen('screen-ai');
+    document.getElementById('loading-msg').innerText = "Voto enviado...";
+    if (isHost) {
+        if (verdict) voteCounts.yes++; else voteCounts.no++;
+        voteCounts.total++;
+        if (isSolo) { if (Math.random() > 0.5) voteCounts.yes++; else voteCounts.no++; voteCounts.total++; }
+        if (voteCounts.total >= players.length) finishVote();
+    } else {
+        peer.hostConn.send({ type: 'VOTE', vote: verdict });
+    }
+}
+
+function finishVote() {
+    const approved = voteCounts.yes >= voteCounts.no;
+    currentVote.ref.status = approved ? 'valid' : 'invalid';
+    setTimeout(nextVote, 500);
+}
+
+function finishTribunal() {
+    if (isHost) {
+        broadcast({ type: 'RESULTS', data: allPlayerAnswers });
+        showResults(allPlayerAnswers);
+    }
+}
+
+// --- RESULTADOS ---
+function showResults(data) {
+    let myData = data.find(d => d.id === myId);
+    if (!myData && data.length > 0) myData = data[0];
 
     switchScreen('screen-check');
-    const btn = document.getElementById('btn-submit-score');
-    btn.innerText = "CONFIRMAR PONTOS";
-    btn.disabled = false;
+    const list = document.getElementById('check-list');
+    list.innerHTML = '';
+
+    if (myData && myData.answers) {
+        myData.answers.forEach(a => {
+            let cls = 'ai-invalid', icon = '❌', txt = 'Inválido';
+            if (a.status === 'valid') { cls = 'ai-valid'; icon = '✅'; txt = 'Aceito'; }
+            if (a.status === 'empty') { cls = 'ai-invalid'; icon = '⚪'; txt = 'Vazio'; }
+            if (a.status === 'warn') { cls = 'ai-warn'; icon = '⚠️'; txt = 'Dúvida'; }
+            list.innerHTML += `<div class="check-row ${cls}"><div><small style="color:#aaa">${a.theme}</small><b>${a.val || '---'}</b></div><div style="text-align:right"><span style="display:block;font-size:0.7rem">${txt}</span><span style="font-size:1.2rem">${icon}</span></div></div>`;
+        });
+    }
+
+    document.getElementById('btn-submit-score').disabled = false;
+    document.getElementById('btn-submit-score').innerText = "CONFIRMAR PONTOS";
 }
 
+// --- AQUI ESTAVA O ERRO DE TRAVAMENTO ---
 function submitScore() {
-    const points = document.querySelectorAll('.check-toggle:checked').length * 10;
+    const validRows = document.querySelectorAll('.check-row.ai-valid').length;
+    const score = validRows * 10;
+
     const btn = document.getElementById('btn-submit-score');
-    btn.innerText = "Aguardando todos...";
     btn.disabled = true;
+    btn.innerText = "Aguardando todos...";
 
     if (isHost) {
+        // 1. Host confirma
         const me = players.find(p => p.id === myId);
-        me.score += points;
-        receivedScores = 1;
-        checkAllScoresReceived();
+        if (me) { me.score += score; me.submitted = true; }
+
+        // 2. CORREÇÃO CRÍTICA: Se for Solo, o Bot TAMBÉM confirma
+        if (isSolo) {
+            const bot = players.find(p => p.id === 'bot');
+            if (bot) {
+                bot.score += Math.floor(Math.random() * 5) * 10 + 20;
+                bot.submitted = true; // <--- O BOT AGORA DA OK!
+            }
+        }
+        checkAllScores();
     } else {
-        peer.hostConn.send({ type: 'SUBMIT_SCORE', id: myId, points });
+        peer.hostConn.send({ type: 'SCORE_CONFIRM', id: myId, pts: score });
     }
 }
 
-function checkAllScoresReceived() {
-    if (receivedScores >= players.length) {
-        receivedScores = 0;
+function checkAllScores() {
+    // Verifica se tem alguém pendente
+    const pending = players.filter(p => !p.submitted);
+
+    // Se não tiver pendência, vai pro ranking
+    if (pending.length === 0) {
         players.sort((a, b) => b.score - a.score);
         broadcast({ type: 'SHOW_RANKING', players });
         showRanking(players);
-
-        let cd = 15;
-        const cdInt = setInterval(() => {
-            cd--;
-            broadcast({ type: 'COOLDOWN', sec: cd });
-            document.getElementById('cooldown-timer').innerText = cd;
-            if (cd <= 0) {
-                clearInterval(cdInt);
-                hostStartGame();
-            }
-        }, 1000);
     }
 }
 
-function showRanking(sortedPlayers) {
+function showRanking(pl) {
     switchScreen('screen-ranking');
     const list = document.getElementById('ranking-list');
     list.innerHTML = '';
-
-    // Efeito Confete e Som
     playSound('win');
-    confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#6366f1', '#f43f5e', '#ffffff'] });
-
-    sortedPlayers.forEach((p, i) => {
-        list.innerHTML += `
-            <div class="rank-card ${i === 0 ? 'top1' : ''}">
-                <div style="font-size:1.5rem; margin-right:15px">${p.avatar}</div>
-                <div style="flex:1">
-                    <div style="font-weight:bold">${p.name}</div>
-                    <div style="font-size:0.8rem; color:#94a3b8">#${i + 1}</div>
-                </div>
-                <div class="rank-score">${p.score}</div>
-            </div>
-        `;
+    if (window.confetti) confetti();
+    pl.forEach((p, i) => {
+        list.innerHTML += `<div class="rank-card ${i === 0 ? 'top1' : ''}"><div style="display:flex;align-items:center"><span class="av-big">${p.avatar}</span><div><b style="font-size:1.1rem">${p.name}</b><small>#${i + 1}</small></div></div><div class="rank-score">${p.score}</div></div>`;
     });
+
+    // Timer para nova partida
+    let cd = 15;
+    const interval = setInterval(() => {
+        cd--;
+        const el = document.getElementById('cooldown-timer');
+        if (el) el.innerText = cd;
+        if (cd <= 0 && isHost) { clearInterval(interval); hostStartGame(); }
+    }, 1000);
 }
 
-// --- UTILS ---
-function renderPlayers() {
-    const grid = document.getElementById('players-grid');
-    grid.innerHTML = '';
-    document.getElementById('player-count').innerText = players.length;
-
-    players.forEach(p => {
-        grid.innerHTML += `
-            <div class="player-chip ${p.id === myId ? 'me' : ''}">
-                <span class="av">${p.avatar}</span>
-                <span>${p.name}</span>
-            </div>
-        `;
-    });
-}
-
-function copyRoomCode() {
-    navigator.clipboard.writeText(myId);
-    const el = document.querySelector('.code-display');
-    el.style.borderColor = '#4ade80';
-    setTimeout(() => el.style.borderColor = 'transparent', 500);
-}
+function copyRoomCode() { if (!myId) return; navigator.clipboard.writeText(myId); alert("Copiado!"); }

@@ -7,13 +7,12 @@
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>NeoStop</title>
 
-    <link rel="shortcut icon" href="assets/icons8-anel-de-fogo-16.png" type="image/stop.png">
+     <link rel="shortcut icon" href="assets/icons8-anel-de-fogo-16.png" type="image/stop.png">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
 
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-
     <link rel="stylesheet" href="style.css">
 </head>
 
@@ -21,28 +20,28 @@
 
     <div class="background-blobs"></div>
 
+    <button class="panic-btn" onclick="location.reload()" title="Reiniciar Jogo">🔄</button>
+
     <main class="app-container">
 
         <section id="screen-login" class="screen active center-y">
-            <div class="brand">
-                <h1>⚡ NEO <span class="highlight">STOP</span></h1>
-                <p>Edição Completa, o Clássico reinventado</p>
+            <div class="brand animate-up">
+                <h1>⚡ NEO<span class="highlight">STOP</span></h1>
+                <p>Versão Edition</p>
             </div>
 
-            <div class="glass-panel">
+            <div class="glass-panel animate-up">
                 <div class="input-float">
                     <input type="text" id="my-name" placeholder=" " maxlength="10">
                     <label>Seu Apelido</label>
                 </div>
 
-                <p class="label-sm">Escolha seu Avatar</p>
+                <p class="label-sm">Avatar</p>
                 <div class="avatar-scroller no-scrollbar">
                     <div class="avatar-opt selected" onclick="selectAvatar('😎')">😎</div>
                     <div class="avatar-opt" onclick="selectAvatar('👽')">👽</div>
                     <div class="avatar-opt" onclick="selectAvatar('🦁')">🦁</div>
                     <div class="avatar-opt" onclick="selectAvatar('🤖')">🤖</div>
-                    <div class="avatar-opt" onclick="selectAvatar('👻')">👻</div>
-                    <div class="avatar-opt" onclick="selectAvatar('🦄')">🦄</div>
                     <div class="avatar-opt" onclick="selectAvatar('🦊')">🦊</div>
                     <div class="avatar-opt" onclick="selectAvatar('⚽')">⚽</div>
                     <div class="avatar-opt" onclick="selectAvatar('🎮')">🎮</div>
@@ -60,30 +59,30 @@
         <section id="screen-lobby" class="screen">
             <header class="lobby-header">
                 <div class="user-badge">
-                    <span id="my-avatar-display" class="av-big">😎</span>
-                    <div class="user-info">
-                        <span id="my-name-display">Player</span>
-                        <small class="status-dot">Online</small>
-                    </div>
+                    <span id="my-avatar-display">😎</span>
+                    <span id="my-name-display">Player</span>
                 </div>
-                <button class="btn-icon" onclick="location.reload()" title="Sair"><i
-                        class="ri-logout-box-r-line"></i></button>
             </header>
 
-            <div id="lobby-setup" class="animate-up scroll-y">
+            <div id="lobby-setup" class="animate-up">
                 <div class="action-card" onclick="createRoom()">
-                    <div class="icon-box"><i class="ri-add-circle-line"></i></div>
+                    <div class="icon-box"><i class="ri-wifi-line"></i></div>
                     <div>
-                        <h3>Criar Sala</h3>
-                        <small>Você será o Host</small>
+                        <h3>Criar Sala Online</h3><small>Jogar com amigos</small>
                     </div>
-                    <i class="ri-arrow-right-s-line arrow-indicate"></i>
                 </div>
 
-                <div class="divider">ou entrar com código</div>
+                <div class="action-card" onclick="startSoloGame()" style="border-color: var(--accent);">
+                    <div class="icon-box" style="color: var(--accent);"><i class="ri-robot-2-line"></i></div>
+                    <div>
+                        <h3>Modo Solo vs IA</h3><small>Treinar sozinho</small>
+                    </div>
+                </div>
+
+                <div class="divider">OU ENTRAR</div>
 
                 <div class="join-box">
-                    <input type="text" id="room-code-input" placeholder="Ex: a1b2...">
+                    <input type="text" id="room-code-input" placeholder="Código da sala">
                     <button onclick="joinRoom()"><i class="ri-login-circle-line"></i></button>
                 </div>
             </div>
@@ -91,46 +90,43 @@
             <div id="lobby-room" class="hidden animate-up flex-col">
                 <div class="room-info-card">
                     <small>CÓDIGO DA SALA</small>
-                    <div class="code-display" onclick="copyRoomCode()">
-                        <span id="display-room-id">...</span>
-                        <i class="ri-file-copy-line"></i>
+                    <div class="code-container">
+                        <div class="code-display" onclick="copyRoomCode()">
+                            <span id="display-room-id">...</span>
+                            <i class="ri-file-copy-line"></i>
+                        </div>
                     </div>
-                    <p style="font-size: 0.7rem; color: #94a3b8; margin-top:5px;">Toque para copiar e envie aos amigos
-                    </p>
                 </div>
 
                 <div class="players-area">
-                    <div class="section-header">
-                        <span>Jogadores Conectados</span>
-                        <span class="badge-count" id="player-count">1</span>
-                    </div>
+                    <div class="section-header">Jogadores (<span id="player-count">1</span>)</div>
                     <div id="players-grid" class="players-grid"></div>
                 </div>
 
                 <div id="host-controls" class="hidden mt-auto">
-                    <div class="section-title">Modo de Jogo</div>
                     <div class="mode-slider no-scrollbar">
-                        <button class="mode-pill selected" onclick="setMode('classico')">📚 Clássico</button>
-                        <button class="mode-pill" onclick="setMode('futebol')">⚽ Futebol</button>
-                        <button class="mode-pill" onclick="setMode('geek')">🤓 Geek</button>
-                        <button class="mode-pill" onclick="setMode('zoeira')">🤪 Zoeira</button>
-                        <button class="mode-pill" onclick="setMode('impossivel')">🔥 Hard</button>
+                        <button class="mode-pill selected" onclick="setMode('classico')">Clássico</button>
+                        <button class="mode-pill" onclick="setMode('futebol')">Futebol</button>
+                        <button class="mode-pill" onclick="setMode('geek')">Geek</button>
+                        <button class="mode-pill" onclick="setMode('zoeira')">Zoeira</button>
                     </div>
-                    <button class="btn-neon full" onclick="hostStartGame()">INICIAR PARTIDA 🚀</button>
+                    <button class="btn-neon full" onclick="hostStartGame()">GIRAR ROLETA 🎲</button>
                 </div>
 
-                <div id="guest-waiting" class="hidden status-pulse mt-auto">
-                    <i class="ri-loader-4-line spin"></i> Aguardando o Host iniciar...
+                <div id="guest-waiting" class="hidden mt-auto status-pulse">
+                    Aguardando o Host...
                 </div>
             </div>
         </section>
 
+        <section id="screen-roulette" class="screen center-y">
+            <h2 class="title-center">Letra Sorteada</h2>
+            <div class="roulette-box"><span id="roulette-letter">A</span></div>
+        </section>
+
         <section id="screen-game" class="screen">
             <div class="game-hud">
-                <div class="letter-circle">
-                    <small>LETRA</small>
-                    <span id="game-letter">?</span>
-                </div>
+                <div class="letter-circle"><span id="game-letter">?</span></div>
                 <div class="timer-area">
                     <span id="game-timer">00:00</span>
                     <div class="progress-track">
@@ -138,34 +134,48 @@
                     </div>
                 </div>
             </div>
-
             <form id="game-form" class="inputs-scroll" onsubmit="event.preventDefault(); sendStop();"></form>
-
             <button class="btn-stop" onclick="sendStop()">STOP!</button>
         </section>
 
-        <section id="screen-check" class="screen">
-            <h2 class="title-center">Conferência 🕵️</h2>
-            <p class="subtitle">Seja honesto! Marque o que valeu.</p>
+        <section id="screen-voting" class="screen center-y">
+            <div class="vote-header"><i class="ri-scales-3-line"></i> TRIBUNAL</div>
 
-            <div id="check-list" class="check-list inputs-scroll"></div>
+            <div class="vote-card animate-up">
+                <small id="vote-player-name">Alguém disse...</small>
+                <h2 id="vote-word">PALAVRA</h2>
+                <div class="vote-theme" id="vote-theme">TEMA</div>
 
-            <button id="btn-submit-score" class="btn-neon full" onclick="submitScore()">CONFIRMAR PONTOS</button>
-        </section>
+                <div class="vote-timer-bar">
+                    <div id="vote-progress"></div>
+                </div>
 
-        <section id="screen-ranking" class="screen">
-            <h2 class="title-center">🏆 Classificação</h2>
-
-            <div id="ranking-list" class="ranking-list inputs-scroll"></div>
-
-            <div class="cooldown-panel">
-                <p>Próxima rodada em</p>
-                <div class="big-counter" id="cooldown-timer">15</div>
+                <div class="vote-actions">
+                    <button class="btn-vote yes" onclick="castVote(true)">👍 ACEITAR</button>
+                    <button class="btn-vote no" onclick="castVote(false)">👎 RECUSAR</button>
+                </div>
+                <p id="vote-status">Decidindo...</p>
             </div>
         </section>
 
-    </main>
+        <section id="screen-ai" class="screen center-y">
+            <div class="ai-loader"><i class="ri-loader-2-line spin" style="font-size:3rem"></i></div>
+            <h3 id="loading-msg">Processando...</h3>
+        </section>
 
+        <section id="screen-check" class="screen">
+            <h2 class="title-center">Resultado ✅</h2>
+            <div id="check-list" class="inputs-scroll"></div>
+            <button id="btn-submit-score" class="btn-neon full" onclick="submitScore()">CONFIRMAR</button>
+        </section>
+
+        <section id="screen-ranking" class="screen">
+            <h2 class="title-center">🏆 Placar</h2>
+            <div id="ranking-list" class="inputs-scroll"></div>
+            <div class="cooldown-panel">Próxima em <span id="cooldown-timer">15</span>s</div>
+        </section>
+
+    </main>
     <script src="script.js"></script>
 </body>
 

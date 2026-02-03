@@ -1,103 +1,91 @@
-# ⚡ NeoStop Multiplayer
+# ⚡ NeoStop
 
-> O clássico jogo de Stop (Adedonha), reinventado para a era digital com design Cyberpunk, modo Multiplayer Online e jogabilidade frenética.
+> O clássico jogo de Stop (Adedonha), reinventado para a web com Inteligência Artificial Local, Sistema de Julgamento Multiplayer e Design Cyberpunk.
 
 ![NeoStop Banner](https://ibb.co/ccpYLY9P)
 
 ## 🎮 Sobre o Projeto
 
-**NeoStop** é uma aplicação web moderna que leva a experiência do papel e caneta para o navegador. Desenvolvido com foco em **Mobile First** e **User Experience**, o jogo permite que amigos se conectem instantaneamente via internet sem necessidade de servidores complexos ou login.
+**NeoStop** é uma aplicação web moderna que leva a competição de palavras para outro nível. Diferente dos jogos tradicionais, ele elimina as brigas sobre "essa palavra existe?" usando um sistema híbrido de **Validação por Dicionário** e **Tribunal dos Jogadores**.
 
-### ✨ Principais Funcionalidades
+Jogue online com amigos via conexão P2P (sem servidores caros) ou treine sozinho contra um Bot inteligente.
 
-* **Multiplayer P2P:** Conexão direta entre jogadores usando tecnologia WebRTC (PeerJS) e servidores STUN do Google para furar bloqueios de rede (funciona 4G vs Wi-Fi).
-* **5 Modos de Jogo:**
-    * 📚 **Clássico:** Os temas tradicionais que todo mundo ama.
-    * ⚽ **Futebol:** Para os boleiros (Times, Jogadores, Estádios).
-    * 🤓 **Geek:** Cultura Pop, Games, Animes e Tech.
-    * 🤪 **Zoeira:** Temas engraçados para dar risada (ex: "Motivo de Divórcio").
-    * 🔥 **Hard:** Apenas para os fortes (Tabela Periódica, Capitais, etc).
-* **Design Premium:** Interface "Dark Mode" com elementos Neon, Glassmorphism e responsividade total para celulares.
-* **Sistema de Áudio Imersivo:** Efeitos sonoros de tic-tac, alarmes e vitórias gerados via Web Audio API (sem arquivos pesados).
-* **Feedback Visual:** Chuva de confetes para o vencedor da rodada e vibração tátil em dispositivos móveis.
-* **Experiência de App:** Otimizado para funcionar como um aplicativo nativo no iOS e Android (Tela cheia, sem barras de navegação).
+### ✨ Funcionalidades Premium
+
+* **🤖 IA Juíza (Local):** Um dicionário interno com milhares de palavras valida automaticamente as respostas óbvias (ex: "Azul" em Cores).
+* **⚖️ O Tribunal:** Palavras desconhecidas ou polêmicas (ex: gírias em "Zoeira") são enviadas para uma **Sessão de Votação**. Todos os jogadores votam em tempo real se aceitam ou não a palavra.
+* **🎲 Modo Solo vs BOT:** Ninguém para jogar? Desafie a IA, que joga, pontua e até "vota" no tribunal.
+* **📡 Multiplayer P2P:** Conexão direta entre navegadores usando tecnologia WebRTC (PeerJS). Baixa latência e privacidade total.
+* **🎨 Visual Imersivo:** Interface "Dark Neon", animações de roleta estilo programa de TV, feedback tátil (vibração) e efeitos sonoros dinâmicos.
+* **📱 Mobile First:** Layout 100% adaptado para celulares, com tratamento para teclado virtual e gestos de toque.
 
 ---
 
-## 🚀 Tecnologias Utilizadas
+## 🚀 Como Jogar
 
-Este projeto foi construído com a "Tríade Web" pura, garantindo máxima performance e zero dependências de build complexas.
+### 1. Preparação
+* Entre no site e escolha seu **Nick** e **Avatar**.
+* **Host:** Cria a sala e envia o código para os amigos.
+* **Guest:** Cola o código e entra na sala.
+
+### 2. A Partida
+* O Host gira a **Roleta** para definir a letra (ex: "M").
+* Todos correm para preencher os temas (Nome, CEP, Animal, etc.).
+* O primeiro a terminar aperta **STOP!** e o tempo para para todos.
+
+### 3. O Julgamento (Diferencial)
+* O sistema analisa as respostas.
+* ✅ **Verde:** Palavra confirmada no dicionário.
+* ⚠️ **Amarelo:** Palavra desconhecida. **O Tribunal é convocado!**
+    * A palavra aparece na tela de todos.
+    * Os jogadores votam 👍 ou 👎.
+    * A maioria decide se ganha ponto ou não.
+
+---
+
+## 🛠️ Tecnologias Utilizadas
+
+Projeto construído com a tríade web pura para máxima performance:
 
 * ![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white) **Estrutura Semântica**
-* ![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white) **Estilização Responsiva & Animações**
-* ![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black) **Lógica de Jogo & Manipulação DOM**
-* **PeerJS:** Biblioteca para simplificar conexões WebRTC.
-* **Canvas Confetti:** Para os efeitos de partículas.
-* **Remix Icon:** Pacote de ícones vetoriais leves.
+* ![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white) **Glassmorphism & Animações**
+* ![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black) **Lógica de Jogo & Web Audio API**
+* **PeerJS:** Para comunicação em tempo real (WebRTC).
+* **Canvas Confetti:** Para celebrar a vitória.
 
 ---
 
-## 🕹️ Como Jogar
+## 📦 Como Rodar o Projeto
 
-### 🏠 Rodando Localmente (Desenvolvimento)
+### ☁️ Opção 1: Jogar Online (Recomendado)
+Acesse o link oficial: **[]**
 
-1.  Clone este repositório ou baixe os arquivos.
-2.  Você precisa de um "Servidor Local" para que o Multiplayer funcione (devido a regras de segurança do navegador).
-    * **Opção A (VS Code):** Instale a extensão "Live Server", abra o `index.html` e clique em "Go Live".
-    * **Opção B (Python):** Abra o terminal na pasta e rode `python -m http.server`.
-3.  Abra o navegador em `http://localhost:5500` (ou a porta indicada).
+### 🏠 Opção 2: Rodar Localmente
+Para testar no seu computador, você precisa de um servidor local devido às regras de segurança do WebRTC.
 
-### 🌍 Jogando Online (Produção)
-
-Para jogar com amigos em outras casas, hospede o projeto gratuitamente:
-
-1.  Crie uma conta no [Vercel](https://vercel.com) ou [Netlify](https://netlify.com).
-2.  Arraste a pasta do projeto para o painel de upload.
-3.  Em segundos, você terá um link (ex: `neostop-patrick.vercel.app`).
-4.  Mande o link no grupo do WhatsApp!
-
----
-
-## 📖 Guia do Usuário
-
-1.  **Perfil:** Ao entrar, escolha seu **Apelido** e um **Avatar** (ex: 🦁, 🤖, 👽).
-2.  **Lobby:**
-    * **Criar Sala:** Você vira o *Host*. Copie o código gerado e mande para os amigos.
-    * **Entrar:** Cole o código que seu amigo mandou e conecte-se.
-3.  **A Partida:**
-    * O Host escolhe o modo (ex: Futebol) e inicia.
-    * Todos recebem a mesma **Letra** e os **Temas**.
-    * Corra contra o tempo! Quem terminar primeiro aperta **STOP**.
-4.  **Conferência:**
-    * O jogo para para todos.
-    * Marque as respostas que você validou como certas.
-    * O sistema soma os pontos e mostra o Ranking com chuva de confetes! 🎉
+1.  Clone este repositório.
+2.  Instale a extensão **Live Server** no VS Code.
+3.  Abra o `index.html` e clique em "Go Live".
+4.  Abra `http://127.0.0.1:5500` no navegador.
 
 ---
 
 ## 🤝 Contribuição
 
-Contribuições são o que fazem a comunidade open source um lugar incrível. Qualquer contribuição que você fizer será **muito apreciada**.
-
-1.  Faça um Fork do projeto
-2.  Crie uma Branch para sua Feature (`git checkout -b feature/MinhaFeature`)
-3.  Adicione suas mudanças (`git commit -m 'Adicionando tema X'`)
-4.  Faça o Push (`git push origin feature/MinhaFeature`)
-5.  Abra um Pull Request
+Quer adicionar mais palavras ao dicionário da IA?
+1.  Abra o arquivo `script.js`.
+2.  Procure pela constante `aiDict`.
+3.  Adicione novas palavras nas categorias (sem acentos!).
+4.  Mande um Pull Request!
 
 ---
 
 ## 📄 Licença
 
-Distribuído sob a licença MIT. Veja `LICENSE` para mais informações.
+Este projeto está sob a licença MIT. Sinta-se livre para usar, estudar e modificar.
 
 ---
 
-## 📞 Contato
-
-**Patrick** - [https://www.linkedin.com/public-profile/settings]
-
-Link do Projeto: []
-
----
-*Desenvolvido com 💜 e muito código.*
+<p align="center">
+  Desenvolvido com 💜 e muita lógica por <strong>Patrick</strong>
+</p>

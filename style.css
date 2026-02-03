@@ -324,43 +324,56 @@ body {
 
 /* --- CORREÇÃO DO BOTÃO DE ENTRAR (MOBILE) --- */
 
+/* --- CORREÇÃO BLINDADA DO BOTÃO (MOBILE) --- */
+
 .join-box {
     display: flex;
+    align-items: stretch;
+    /* Garante que tenham a mesma altura */
     gap: 8px;
     margin-top: 15px;
     width: 100%;
-    /* Garante que usa 100% da largura disponível */
-    max-width: 100%;
-    /* Impede que estoure a tela */
+    padding: 0 2px;
+    /* Margem de segurança para não colar na borda */
+    box-sizing: border-box;
+    /* Impede que bordas estourem a tela */
 }
 
 .join-box input {
     flex: 1;
+    /* Ocupa todo o espaço que sobrar */
+    min-width: 0;
+    /* Permite que o texto encolha se precisar */
     background: #0f172a;
     border: 1px solid #334155;
-    padding: 14px;
+    padding: 12px 14px;
     border-radius: 12px;
     color: white;
     outline: none;
     font-size: 1rem;
-    min-width: 0;
-    /* O SEGREDO: Permite que o input encolha para caber o botão */
+    height: 54px;
+    /* Altura fixa para alinhar com o botão */
 }
 
 .join-box button {
+    /* O SEGREDO: */
+    flex: 0 0 54px;
+    /* Não cresce, Não encolhe, Fixo em 54px */
+    width: 54px;
+    height: 54px;
+    /* Altura fixa igual ao input */
+
     background: var(--primary);
     color: white;
     border: none;
-    width: 54px;
     border-radius: 12px;
     font-size: 1.3rem;
     cursor: pointer;
-    transition: 0.2s;
-    flex-shrink: 0;
-    /* O SEGREDO 2: Garante que o botão nunca suma ou diminua */
     display: flex;
     align-items: center;
     justify-content: center;
+    padding: 0;
+    /* Remove padding interno para o ícone ficar centralizado */
 }
 
 .join-box button:active {

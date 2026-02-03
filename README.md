@@ -2,7 +2,7 @@
 
 > O clássico jogo de Stop (Adedonha), reinventado para a era digital com design Cyberpunk, modo Multiplayer Online e jogabilidade frenética.
 
-![NeoStop Banner](banner.png)
+![NeoStop Banner](https://ibb.co/ccpYLY9P)
 
 ## 🎮 Sobre o Projeto
 

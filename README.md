@@ -2,7 +2,7 @@
 
 > O clássico jogo de Stop (Adedonha), reinventado para a web com Inteligência Artificial Local, Sistema de Julgamento Multiplayer e Design Cyberpunk.
 
-![NeoStop Banner](https://ibb.co/ccpYLY9P)
+![NeoStop Banner]()
 
 ## 🎮 Sobre o Projeto
 

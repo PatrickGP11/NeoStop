@@ -19,7 +19,7 @@ const aiDict = {
     lugares: ["acre", "alagoas", "amapa", "amazonas", "bahia", "ceara", "distrito federal", "espirito santo", "goias", "maranhao", "mato grosso", "mato grosso do sul", "minas gerais", "para", "paraiba", "parana", "pernambuco", "piaui", "rio de janeiro", "rio grande do norte", "rio grande do sul", "rondonia", "roraima", "santa catarina", "sao paulo", "sergipe", "tocantins", "aracaju", "belem", "belo horizonte", "boa vista", "brasilia", "campo grande", "cuiaba", "curitiba", "florianopolis", "fortaleza", "goiania", "joao pessoa", "macapa", "maceio", "manaus", "natal", "palmas", "porto alegre", "porto velho", "recife", "rio branco", "salvador", "sao luis", "teresina", "vitoria", "brasil", "argentina", "chile", "uruguai", "paraguai", "bolivia", "peru", "colombia", "venezuela", "equador", "estados unidos", "canada", "mexico", "espanha", "portugal", "franca", "italia", "alemanha", "inglaterra", "japao", "china", "russia", "australia", "africa do sul", "angola"],
     nomes: ["alice", "amanda", "ana", "andre", "antonio", "arthur", "beatriz", "bernardo", "bianca", "bruna", "bruno", "caio", "camila", "carlos", "carol", "catarina", "cecilia", "cesar", "clara", "claudio", "daniel", "daniela", "davi", "david", "debora", "diego", "diogo", "douglas", "eduarda", "eduardo", "elias", "elisa", "emanuel", "enzo", "erick", "esther", "fabio", "fabricio", "felipe", "fernanda", "fernando", "flavia", "gabriel", "gabriela", "giovana", "guilherme", "gustavo", "heitor", "helena", "henrique", "hugo", "igor", "isabela", "isadora", "isis", "joao", "joana", "jonas", "jorge", "jose", "julia", "juliana", "julio", "kamila", "karina", "kauan", "kevin", "larissa", "laura", "lavinia", "leonardo", "leticia", "livia", "lorena", "lorenzo", "lucas", "lucca", "luana", "luis", "luiza", "maite", "manuela", "marcela", "marcelo", "marcos", "maria", "mariana", "marina", "matheus", "melissa", "miguel", "murilo", "natalia", "nicolas", "nicole", "olivia", "otavio", "paola", "paulo", "pedro", "pietra", "rafael", "rafaela", "raissa", "rebeca", "renan", "renata", "ricardo", "roberto", "rodrigo", "rogerio", "ryan", "samuel", "sarah", "sergio", "sophia", "stefany", "tatiane", "theo", "thiago", "thomas", "tiago", "tomaz", "valentina", "vanessa", "vicente", "vinicius", "vitor", "vitoria", "vivian", "willian", "yasmin", "yuri"],
     objetos: ["anel", "apito", "armario", "bacia", "banco", "balde", "bola", "boneca", "borracha", "botao", "brinco", "cadeira", "caderno", "caixa", "caneta", "caneca", "carro", "celular", "chave", "colher", "computador", "copo", "dado", "dente", "diamante", "disco", "escada", "escova", "espelho", "faca", "fita", "fogao", "foice", "garfo", "garrafa", "gaveta", "geladeira", "janela", "jarra", "joia", "lampada", "lapis", "livro", "lixeira", "luva", "mala", "martelo", "mesa", "mochila", "moeda", "mola", "navio", "oculos", "ovo", "panela", "papel", "pedra", "pente", "pia", "pilha", "pincel", "pipa", "porta", "prato", "prego", "quadro", "queijo", "radio", "relogio", "remo", "roda", "roupa", "sabao", "sacola", "sapato", "sino", "sofa", "taca", "tapete", "teclado", "televisao", "tesoura", "tijolo", "toalha", "torneira", "vaso", "vela", "vidro", "violao", "xadrez", "xicara", "ziper"],
-    // GEEK & FUTEBOL
+    // FUTEBOL & GEEK
     futebol_times: ["flamengo", "corinthians", "palmeiras", "sao paulo", "vasco", "santos", "gremio", "internacional", "atletico mineiro", "cruzeiro", "botafogo", "fluminense", "bahia", "vitoria", "sport", "ceara", "fortaleza", "real madrid", "barcelona", "liverpool", "manchester united", "city", "psg", "bayern", "juventus", "milan", "chelsea", "arsenal", "boca juniors", "river plate"],
     futebol_jogadores: ["neymar", "messi", "cristiano ronaldo", "pele", "maradona", "zico", "ronaldo", "ronaldinho", "rivaldo", "romario", "kaká", "bebeto", "garrincha", "socrates", "vinicius junior", "rodrigo", "richarlison", "alisson", "ederson", "casemiro", "modric", "mbappe", "haaland", "lewandowski", "benzema", "salah", "de bruyne", "kane"],
     futebol_estadios: ["maracana", "itaquerao", "morumbi", "mineirao", "beira rio", "arena do gremio", "fonte nova", "castelao", "mane garrincha", "allianz parque", "sao januario", "vila belmiro", "camp nou", "bernabeu", "wembley", "old trafford", "anfield", "san siro"],
@@ -48,16 +48,36 @@ let connections = [], players = [], currentMode = 'classico';
 let gameInterval, cooldownInterval;
 let allPlayerAnswers = [], judgmentQueue = [], currentVote = null, voteCounts = { yes: 0, no: 0, total: 0 };
 let lastLetter = "";
+let safetyTimer = null; // Timer de segurança
 
 // --- REDE ---
 function initPeer() {
     if (peer) peer.destroy();
+
+    // Feedback Visual
+    const display = document.querySelector('.code-display span');
+    if (display) display.innerText = "...";
+
     peer = new Peer(null, { config: { 'iceServers': [{ url: 'stun:stun.l.google.com:19302' }] } });
-    peer.on('open', id => { myId = id; const d = document.querySelector('.code-display span'); if (d) d.innerText = id; if (isHost && !isSolo) { players = [{ id: myId, name: myName, avatar: myAvatar, score: 0 }]; renderPlayers(); } });
+
+    peer.on('open', id => {
+        myId = id;
+        if (display) display.innerText = id;
+        if (isHost && !isSolo) {
+            players = [{ id: myId, name: myName, avatar: myAvatar, score: 0 }];
+            renderPlayers();
+        }
+    });
+
     peer.on('connection', conn => {
         connections.push(conn);
         conn.on('data', d => handleData(d, conn));
         conn.on('close', () => { players = players.filter(p => p.id !== conn.peer); broadcast({ type: 'UPDATE_PLAYERS', players }); renderPlayers(); });
+    });
+
+    peer.on('error', (err) => {
+        console.error(err);
+        if (display) display.innerText = "Erro (Tente Recarregar)";
     });
 }
 initPeer();
@@ -66,7 +86,15 @@ initPeer();
 function switchScreen(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
 function goToLobby() { myName = document.getElementById('my-name').value || "Player"; switchScreen('screen-lobby'); document.getElementById('lobby-setup').classList.remove('hidden'); document.getElementById('lobby-room').classList.add('hidden'); }
 function selectAvatar(av) { myAvatar = av; document.querySelectorAll('.avatar-opt').forEach(e => e.classList.remove('selected')); event.currentTarget.classList.add('selected'); }
-function forceNewID() { if (confirm("Novo código?")) initPeer(); }
+
+function forceNewID() {
+    if (confirm("Novo código?")) {
+        const icon = document.querySelector('.btn-icon-small i.ri-refresh-line');
+        if (icon) icon.classList.add('spin');
+        initPeer();
+        setTimeout(() => { if (icon) icon.classList.remove('spin'); }, 1000);
+    }
+}
 function shareOnWhatsapp() { if (!myId) return alert("Aguarde..."); window.open(`https://wa.me/?text=${encodeURIComponent('NeoStop: ' + myId)}`, '_blank'); }
 function copyRoomCode() { if (!myId) return; navigator.clipboard.writeText(myId); alert("Copiado!"); }
 
@@ -88,8 +116,7 @@ function handleData(data, conn) {
             if (allPlayerAnswers.length >= players.length - (isSolo ? 0 : 0)) startTribunal();
         }
         else if (data.type === 'VOTE') {
-            if (data.vote) voteCounts.yes++; else voteCounts.no++;
-            voteCounts.total++;
+            if (data.vote) voteCounts.yes++; else voteCounts.no++; voteCounts.total++;
             if (voteCounts.total >= players.length) finishVote();
         }
         else if (data.type === 'SCORE_CONFIRM') {
@@ -115,10 +142,8 @@ function hostStartGame() {
     const abc = "ABCDEFGHILMNOPQRSTUVZ";
     const themes = themesDB[currentMode];
     let letter;
-
     // ANTI-REPETIÇÃO
-    do { letter = abc[Math.floor(Math.random() * abc.length)]; }
-    while (letter === lastLetter && players.length > 0);
+    do { letter = abc[Math.floor(Math.random() * abc.length)]; } while (letter === lastLetter && players.length > 0);
     lastLetter = letter;
 
     players.forEach(p => p.submitted = false);
@@ -134,7 +159,6 @@ function showRoulette(finalLetter, callback) {
     const display = document.getElementById('roulette-letter');
     const abc = "ABCDEFGHILMNOPQRSTUVZ";
     let speed = 50, cycles = 0;
-
     const spinLoop = () => {
         display.innerText = abc[Math.floor(Math.random() * abc.length)];
         playSound('spin');
@@ -154,20 +178,13 @@ function startGame(l, t) {
     const f = document.getElementById('game-form'); f.innerHTML = '';
     t.forEach(th => f.innerHTML += `<div class="game-input-group"><label>${th}</label><input type="text" data-theme="${th}" autocomplete="off"></div>`);
 
-    let sec = 0;
-    clearInterval(gameInterval);
-
-    // TIMER AJUSTADO PARA 90 SEGUNDOS (1:30)
+    let sec = 0; clearInterval(gameInterval); clearInterval(cooldownInterval);
+    // TIMER 90 SEGUNDOS (1:30)
     gameInterval = setInterval(() => {
         sec++;
-        const m = Math.floor(sec / 60);
-        const s = sec % 60;
+        const m = Math.floor(sec / 60); const s = sec % 60;
         document.getElementById('game-timer').innerText = `${m}:${s < 10 ? '0' + s : s}`;
-
-        const pct = Math.max(0, 100 - (sec / 0.9));
-        document.getElementById('progress-fill').style.width = `${pct}%`;
-
-        // AUTO-STOP DO JOGO
+        document.getElementById('progress-fill').style.width = `${Math.max(0, 100 - (sec / 0.9))}%`;
         if (sec >= 90) { if (isHost) sendStop(); }
     }, 1000);
 }
@@ -177,7 +194,7 @@ function sendStop() {
     else { peer.hostConn.send({ type: 'STOP', name: myName }); }
 }
 
-// --- FASE 1: STOP ---
+// --- FASE 1: STOP BLINDADO ---
 function endGameLogic(stopperName) {
     clearInterval(gameInterval);
     if (navigator.vibrate) navigator.vibrate(500);
@@ -191,10 +208,14 @@ function endGameLogic(stopperName) {
 
         if (isSolo) {
             allPlayerAnswers.push({ id: 'bot', answers: [{ theme: 'Nome', val: 'Bot', letter: 'X' }] });
-            setTimeout(startTribunal, 1000);
+            startTribunal();
         } else {
-            // TIMEOUT DE SEGURANÇA (4s)
-            setTimeout(() => { if (allPlayerAnswers.length < players.length) startTribunal(); }, 4000);
+            // RELÓGIO DE SEGURANÇA (4s)
+            clearTimeout(safetyTimer);
+            safetyTimer = setTimeout(() => {
+                console.log("Forçando Tribunal...");
+                startTribunal();
+            }, 4000);
         }
     } else {
         sendMyAnswers();
@@ -211,12 +232,15 @@ function getInputs() {
 function sendMyAnswers() {
     switchScreen('screen-ai');
     document.getElementById('loading-msg').innerText = "Aguardando...";
+    // Tenta enviar. Se falhar, o host força o avanço em 4s.
     if (peer.hostConn) peer.hostConn.send({ type: 'ANSWERS', id: myId, answers: getInputs() });
 }
 
 // --- TRIBUNAL ---
 function startTribunal() {
+    clearTimeout(safetyTimer); // Cancela o watchdog
     judgmentQueue = [];
+
     allPlayerAnswers.forEach(pData => {
         pData.answers.forEach(ans => {
             const status = analyze(ans.val, ans.letter, ans.theme);
@@ -224,6 +248,7 @@ function startTribunal() {
             if (status === 'warn') judgmentQueue.push({ word: ans.val, theme: ans.theme, author: players.find(p => p.id === pData.id)?.name || "Alguém", ref: ans });
         });
     });
+
     if (judgmentQueue.length > 0) nextVote(); else finishTribunal();
 }
 
@@ -260,7 +285,10 @@ function castVote(verdict) {
     if (isHost) {
         if (verdict) voteCounts.yes++; else voteCounts.no++;
         voteCounts.total++;
-        if (isSolo) { if (Math.random() > 0.5) voteCounts.yes++; else voteCounts.no++; voteCounts.total++; }
+        if (isSolo) {
+            if (Math.random() > 0.5) voteCounts.yes++; else voteCounts.no++;
+            voteCounts.total++;
+        }
         if (voteCounts.total >= players.length) finishVote();
     } else {
         peer.hostConn.send({ type: 'VOTE', vote: verdict });
@@ -281,33 +309,33 @@ function finishTribunal() {
 }
 
 // --- RESULTADOS ---
+
 function showResults(data) {
-    let myData = data.find(d => d.id === myId);
-    if (!myData && data.length > 0) myData = data[0];
-
-    switchScreen('screen-check');
-    const list = document.getElementById('check-list');
-    list.innerHTML = '';
-
+    let myData = data.find(d => d.id === myId); if (!myData && data.length > 0) myData = data[0];
+    switchScreen('screen-check'); const list = document.getElementById('check-list'); list.innerHTML = '';
     if (myData && myData.answers) {
         myData.answers.forEach(a => {
-            let cls = 'ai-invalid', icon = '❌', txt = 'Inválido', check = '';
+            let cls = 'ai-invalid', icon = '❌', txt = 'Inválido', check = '', disabled = '';
             if (a.status === 'valid') { cls = 'ai-valid'; icon = '✅'; txt = 'Aceito'; check = 'checked'; }
-            if (a.status === 'empty') { cls = 'ai-invalid'; icon = '⚪'; txt = 'Vazio'; }
+            if (a.status === 'empty') { cls = 'ai-invalid'; icon = '⚪'; txt = 'Vazio'; disabled = 'disabled'; } // TRAVADO
             if (a.status === 'warn') { cls = 'ai-warn'; icon = '⚠️'; txt = 'Dúvida'; }
 
+            // Só permite clicar se não estiver disabled
+            const clickAction = disabled ? '' : 'onclick="this.querySelector(\'input\').click()"';
+
             list.innerHTML += `
-            <div class="check-row ${cls}" onclick="this.querySelector('input').click()">
-                <div><small style="color:#aaa">${a.theme}</small><b>${a.val || '---'}</b></div>
-                <div style="text-align:right">
-                    <span style="display:block;font-size:0.7rem">${txt}</span>
-                    <span style="font-size:1.2rem">${icon}</span>
+            <div class="check-row ${cls}" ${clickAction}>
+                <div class="check-info">
+                    <small>${a.theme}</small>
+                    <b>${a.val || '---'}</b>
                 </div>
-                <input type="checkbox" class="check-toggle" ${check} onclick="event.stopPropagation()">
+                <div class="status-icon">
+                    ${icon}
+                </div>
+                <input type="checkbox" class="check-toggle" ${check} ${disabled} onclick="event.stopPropagation()">
             </div>`;
         });
     }
-
     document.getElementById('btn-submit-score').disabled = false;
     document.getElementById('btn-submit-score').innerText = "CONFIRMAR PONTOS";
 }
@@ -315,10 +343,9 @@ function showResults(data) {
 function submitScore() {
     const validRows = document.querySelectorAll('.check-row.ai-valid').length;
     const score = validRows * 10;
-
     const btn = document.getElementById('btn-submit-score');
     btn.disabled = true;
-    btn.innerText = "Aguardando todos...";
+    btn.innerText = "Aguardando...";
 
     if (isHost) {
         const me = players.find(p => p.id === myId);
@@ -357,15 +384,7 @@ function showRanking(pl) {
     let cd = 15;
     const el = document.getElementById('cooldown-timer');
     if (el) el.innerText = cd;
-
-    cooldownInterval = setInterval(() => {
-        cd--;
-        if (el) el.innerText = cd;
-        if (cd <= 0) {
-            clearInterval(cooldownInterval);
-            if (isHost) hostStartGame();
-        }
-    }, 1000);
+    cooldownInterval = setInterval(() => { cd--; if (el) el.innerText = cd; if (cd <= 0) { clearInterval(cooldownInterval); if (isHost) hostStartGame(); } }, 1000);
 }
 
 function copyRoomCode() { if (!myId) return; navigator.clipboard.writeText(myId); alert("Copiado!"); }

@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>NeoStop</title>
+    <title>NeoStop Ultimate</title>
 
     <link rel="shortcut icon" href="assets/icons8-anel-de-fogo-16.png" type="image/stop.png">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
@@ -13,6 +13,7 @@
 
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
     <link rel="stylesheet" href="style.css">
 </head>
 
@@ -27,7 +28,7 @@
         <section id="screen-login" class="screen active center-y">
             <div class="brand animate-up">
                 <h1>⚡ NEO<span class="highlight">STOP</span></h1>
-                <p>Versão Edition</p>
+                <p>Multiplayer & AI Edition</p>
             </div>
 
             <div class="glass-panel animate-up">
@@ -36,13 +37,16 @@
                     <label>Seu Apelido</label>
                 </div>
 
-                <p class="label-sm">Avatar</p>
+                <p class="label-sm" style="text-align:left; color:#94a3b8; font-size:0.8rem; margin-bottom:5px">Escolha
+                    seu Avatar</p>
                 <div class="avatar-scroller no-scrollbar">
                     <div class="avatar-opt selected" onclick="selectAvatar('😎')">😎</div>
                     <div class="avatar-opt" onclick="selectAvatar('👽')">👽</div>
                     <div class="avatar-opt" onclick="selectAvatar('🦁')">🦁</div>
                     <div class="avatar-opt" onclick="selectAvatar('🤖')">🤖</div>
                     <div class="avatar-opt" onclick="selectAvatar('🦊')">🦊</div>
+                    <div class="avatar-opt" onclick="selectAvatar('👻')">👻</div>
+                    <div class="avatar-opt" onclick="selectAvatar('🦄')">🦄</div>
                     <div class="avatar-opt" onclick="selectAvatar('⚽')">⚽</div>
                     <div class="avatar-opt" onclick="selectAvatar('🎮')">🎮</div>
                     <div class="avatar-opt" onclick="selectAvatar('🍕')">🍕</div>
@@ -59,8 +63,11 @@
         <section id="screen-lobby" class="screen">
             <header class="lobby-header">
                 <div class="user-badge">
-                    <span id="my-avatar-display">😎</span>
-                    <span id="my-name-display">Player</span>
+                    <span id="my-avatar-display" class="av-big">😎</span>
+                    <div class="user-info">
+                        <span id="my-name-display">Player</span>
+                        <small class="status-dot">Online</small>
+                    </div>
                 </div>
             </header>
 
@@ -89,50 +96,47 @@
 
             <div id="lobby-room" class="hidden animate-up flex-col">
                 <div class="room-info-card">
-                    <small>CÓDIGO DA SALA</small>
+                    <small style="color:#94a3b8; font-size:0.75rem; font-weight:bold; letter-spacing:1px">CÓDIGO DA
+                        SALA</small>
                     <div class="code-container">
                         <div class="code-display" onclick="copyRoomCode()">
                             <span id="display-room-id">...</span>
                             <i class="ri-file-copy-line"></i>
                         </div>
-
                         <button class="btn-icon-small" onclick="forceNewID()" title="Novo Código">
                             <i class="ri-refresh-line"></i>
                         </button>
-
                         <button class="btn-icon-small whatsapp" onclick="shareOnWhatsapp()" title="Enviar no Zap">
                             <i class="ri-whatsapp-line"></i>
                         </button>
                     </div>
-                    <p class="hint-text">Toque para copiar ou enviar</p>
-                    
                 </div>
-            </div>
-            </div>
 
-            <div class="players-area">
-                <div class="section-header">Jogadores (<span id="player-count">1</span>)</div>
-                <div id="players-grid" class="players-grid"></div>
-            </div>
-
-            <div id="host-controls" class="hidden mt-auto">
-                <div class="mode-slider no-scrollbar">
-                    <button class="mode-pill selected" onclick="setMode('classico')">Clássico</button>
-                    <button class="mode-pill" onclick="setMode('futebol')">Futebol</button>
-                    <button class="mode-pill" onclick="setMode('geek')">Geek</button>
-                    <button class="mode-pill" onclick="setMode('zoeira')">Zoeira</button>
+                <div class="players-area">
+                    <div class="section-header" style="margin-bottom:10px; font-size:0.9rem; color:#cbd5e1">
+                        Jogadores (<span id="player-count">1</span>)
+                    </div>
+                    <div id="players-grid" class="players-grid"></div>
                 </div>
-                <button class="btn-neon full" onclick="hostStartGame()">GIRAR ROLETA 🎲</button>
-            </div>
 
-            <div id="guest-waiting" class="hidden mt-auto status-pulse">
-                Aguardando o Host...
-            </div>
+                <div id="host-controls" class="hidden mt-auto">
+                    <div class="mode-slider no-scrollbar">
+                        <button class="mode-pill selected" onclick="setMode('classico')">📚 Clássico</button>
+                        <button class="mode-pill" onclick="setMode('futebol')">⚽ Futebol</button>
+                        <button class="mode-pill" onclick="setMode('geek')">🤓 Geek</button>
+                        <button class="mode-pill" onclick="setMode('zoeira')">🤪 Zoeira</button>
+                    </div>
+                    <button class="btn-neon full" onclick="hostStartGame()">GIRAR ROLETA 🎲</button>
+                </div>
+
+                <div id="guest-waiting" class="hidden mt-auto status-pulse">
+                    <i class="ri-loader-4-line spin"></i> Aguardando Host...
+                </div>
             </div>
         </section>
 
         <section id="screen-roulette" class="screen center-y">
-            <h2 class="title-center">Letra Sorteada</h2>
+            <h2 class="title-center" style="margin-bottom:30px">Sorteando Letra...</h2>
             <div class="roulette-box"><span id="roulette-letter">A</span></div>
         </section>
 
@@ -163,27 +167,34 @@
                 </div>
 
                 <div class="vote-actions">
-                    <button class="btn-vote yes" onclick="castVote(true)">👍 ACEITAR</button>
-                    <button class="btn-vote no" onclick="castVote(false)">👎 RECUSAR</button>
+                    <button class="btn-vote yes" onclick="castVote(true)">
+                        <i class="ri-thumb-up-fill"></i> ACEITAR
+                    </button>
+                    <button class="btn-vote no" onclick="castVote(false)">
+                        <i class="ri-thumb-down-fill"></i> RECUSAR
+                    </button>
                 </div>
-                <p id="vote-status">Decidindo...</p>
+                <p id="vote-status" class="status-pulse">Votando...</p>
             </div>
         </section>
 
         <section id="screen-ai" class="screen center-y">
-            <div class="ai-loader"><i class="ri-loader-2-line spin" style="font-size:3rem"></i></div>
+            <div class="roulette-box"
+                style="width:100px; height:100px; font-size:3rem; margin-bottom:20px; border-width:4px">
+                <i class="ri-robot-2-line"></i>
+            </div>
             <h3 id="loading-msg">Processando...</h3>
         </section>
 
         <section id="screen-check" class="screen">
             <h2 class="title-center">Resultado ✅</h2>
-            <div id="check-list" class="inputs-scroll"></div>
-            <button id="btn-submit-score" class="btn-neon full" onclick="submitScore()">CONFIRMAR</button>
+            <div id="check-list" class="inputs-scroll check-list"></div>
+            <button id="btn-submit-score" class="btn-neon full" onclick="submitScore()">CONFIRMAR PONTOS</button>
         </section>
 
         <section id="screen-ranking" class="screen">
             <h2 class="title-center">🏆 Placar</h2>
-            <div id="ranking-list" class="inputs-scroll"></div>
+            <div id="ranking-list" class="inputs-scroll ranking-list"></div>
             <div class="cooldown-panel">Próxima em <span id="cooldown-timer">15</span>s</div>
         </section>
 

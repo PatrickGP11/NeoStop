@@ -18,14 +18,15 @@ const themesDB = { classico: ["Nome", "CEP", "Animal", "Cor", "Objeto", "Fruta/C
 // ESTADO
 let peer, myId, myName = "Player", myAvatar = "😎", isHost = false, isSolo = false;
 let connections = [], players = [], currentMode = 'classico';
-let gameInterval;
+let gameInterval, cooldownInterval;
 let allPlayerAnswers = [], judgmentQueue = [], currentVote = null, voteCounts = { yes: 0, no: 0, total: 0 };
+let lastLetter = "";
 
-// --- INIT ---
+// --- REDE ---
 function initPeer() {
     if (peer) peer.destroy();
     peer = new Peer(null, { config: { 'iceServers': [{ url: 'stun:stun.l.google.com:19302' }] } });
-    peer.on('open', id => { myId = id; document.querySelector('.code-display span').innerText = id; });
+    peer.on('open', id => { myId = id; const d = document.querySelector('.code-display span'); if (d) d.innerText = id; if (isHost && !isSolo) { players = [{ id: myId, name: myName, avatar: myAvatar, score: 0 }]; renderPlayers(); } });
     peer.on('connection', conn => {
         connections.push(conn);
         conn.on('data', d => handleData(d, conn));
@@ -61,11 +62,10 @@ function handleData(data, conn) {
             voteCounts.total++;
             if (voteCounts.total >= players.length) finishVote();
         }
-        // RECEBE A CONFIRMAÇÃO DE SCORE
         else if (data.type === 'SCORE_CONFIRM') {
             const p = players.find(x => x.id === data.id);
             if (p) { p.score += data.pts; p.submitted = true; }
-            checkAllScores(); // VERIFICA SE TODOS DERAM OK
+            checkAllScores();
         }
     } else {
         if (data.type === 'UPDATE_PLAYERS') { players = data.players; renderPlayers(); }
@@ -83,15 +83,16 @@ function setMode(m) { currentMode = m; document.querySelectorAll('.mode-pill').f
 
 function hostStartGame() {
     const abc = "ABCDEFGHILMNOPQRSTUVZ";
-    const letter = abc[Math.floor(Math.random() * abc.length)];
     const themes = themesDB[currentMode];
+    let letter;
 
-    // Reseta flags de submissão
+    // ANTI-REPETIÇÃO
+    do { letter = abc[Math.floor(Math.random() * abc.length)]; }
+    while (letter === lastLetter && players.length > 0);
+    lastLetter = letter;
+
     players.forEach(p => p.submitted = false);
-
     broadcast({ type: 'ROULETTE', letter: letter });
-
-    // Animação no Host também
     showRoulette(letter, () => {
         broadcast({ type: 'START', letter: letter, themes: themes });
         startGame(letter, themes);
@@ -102,9 +103,7 @@ function showRoulette(finalLetter, callback) {
     switchScreen('screen-roulette');
     const display = document.getElementById('roulette-letter');
     const abc = "ABCDEFGHILMNOPQRSTUVZ";
-    let speed = 50;
-    let cycles = 0;
-
+    let speed = 50, cycles = 0;
     const spinLoop = () => {
         display.innerText = abc[Math.floor(Math.random() * abc.length)];
         playSound('spin');
@@ -112,12 +111,8 @@ function showRoulette(finalLetter, callback) {
         if (speed > 400) {
             display.innerText = finalLetter;
             playSound('win');
-            // Dá tempo de ver a letra antes de começar
             setTimeout(() => { if (callback) callback(); }, 2000);
-        } else {
-            cycles++;
-            setTimeout(spinLoop, speed);
-        }
+        } else { cycles++; setTimeout(spinLoop, speed); }
     };
     spinLoop();
 }
@@ -127,12 +122,34 @@ function startGame(l, t) {
     document.getElementById('game-letter').innerText = l;
     const f = document.getElementById('game-form'); f.innerHTML = '';
     t.forEach(th => f.innerHTML += `<div class="game-input-group"><label>${th}</label><input type="text" data-theme="${th}" autocomplete="off"></div>`);
-    let s = 0; clearInterval(gameInterval);
-    gameInterval = setInterval(() => { s++; document.getElementById('game-timer').innerText = s; document.getElementById('progress-fill').style.width = `${Math.max(0, 100 - s)}%`; }, 1000);
-}
-function sendStop() { if (isHost) { broadcast({ type: 'GAME_OVER', name: myName }); endGameLogic(myName); } else peer.hostConn.send({ type: 'STOP', name: myName }); }
 
-// --- FIM DE RODADA ---
+    let sec = 0;
+    clearInterval(gameInterval);
+
+    // TIMER AJUSTADO PARA 90 SEGUNDOS (1:30)
+    gameInterval = setInterval(() => {
+        sec++;
+        const m = Math.floor(sec / 60);
+        const s = sec % 60;
+        document.getElementById('game-timer').innerText = `${m}:${s < 10 ? '0' + s : s}`;
+
+        // Barra calculada para 90s
+        const pct = Math.max(0, 100 - (sec / 0.9));
+        document.getElementById('progress-fill').style.width = `${pct}%`;
+
+        // AUTO-STOP DO JOGO (90s)
+        if (sec >= 90) {
+            if (isHost) sendStop();
+        }
+    }, 1000);
+}
+
+function sendStop() {
+    if (isHost) { broadcast({ type: 'GAME_OVER', name: myName }); endGameLogic(myName); }
+    else { peer.hostConn.send({ type: 'STOP', name: myName }); }
+}
+
+// --- FASE 1: STOP ---
 function endGameLogic(stopperName) {
     clearInterval(gameInterval);
     if (navigator.vibrate) navigator.vibrate(500);
@@ -148,9 +165,7 @@ function endGameLogic(stopperName) {
             allPlayerAnswers.push({ id: 'bot', answers: [{ theme: 'Nome', val: 'Bot', letter: 'X' }] });
             setTimeout(startTribunal, 1000);
         } else {
-            setTimeout(() => {
-                if (allPlayerAnswers.length < players.length) startTribunal();
-            }, 4000);
+            setTimeout(() => { if (allPlayerAnswers.length < players.length) startTribunal(); }, 4000);
         }
     } else {
         sendMyAnswers();
@@ -166,7 +181,7 @@ function getInputs() {
 
 function sendMyAnswers() {
     switchScreen('screen-ai');
-    document.getElementById('loading-msg').innerText = "Aguardando Tribunal...";
+    document.getElementById('loading-msg').innerText = "Aguardando...";
     if (peer.hostConn) peer.hostConn.send({ type: 'ANSWERS', id: myId, answers: getInputs() });
 }
 
@@ -259,7 +274,6 @@ function showResults(data) {
     document.getElementById('btn-submit-score').innerText = "CONFIRMAR PONTOS";
 }
 
-// --- AQUI ESTAVA O ERRO DE TRAVAMENTO ---
 function submitScore() {
     const validRows = document.querySelectorAll('.check-row.ai-valid').length;
     const score = validRows * 10;
@@ -269,16 +283,14 @@ function submitScore() {
     btn.innerText = "Aguardando todos...";
 
     if (isHost) {
-        // 1. Host confirma
         const me = players.find(p => p.id === myId);
         if (me) { me.score += score; me.submitted = true; }
 
-        // 2. CORREÇÃO CRÍTICA: Se for Solo, o Bot TAMBÉM confirma
         if (isSolo) {
             const bot = players.find(p => p.id === 'bot');
             if (bot) {
                 bot.score += Math.floor(Math.random() * 5) * 10 + 20;
-                bot.submitted = true; // <--- O BOT AGORA DA OK!
+                bot.submitted = true; // BOT OK
             }
         }
         checkAllScores();
@@ -288,10 +300,7 @@ function submitScore() {
 }
 
 function checkAllScores() {
-    // Verifica se tem alguém pendente
     const pending = players.filter(p => !p.submitted);
-
-    // Se não tiver pendência, vai pro ranking
     if (pending.length === 0) {
         players.sort((a, b) => b.score - a.score);
         broadcast({ type: 'SHOW_RANKING', players });
@@ -305,17 +314,25 @@ function showRanking(pl) {
     list.innerHTML = '';
     playSound('win');
     if (window.confetti) confetti();
+
     pl.forEach((p, i) => {
         list.innerHTML += `<div class="rank-card ${i === 0 ? 'top1' : ''}"><div style="display:flex;align-items:center"><span class="av-big">${p.avatar}</span><div><b style="font-size:1.1rem">${p.name}</b><small>#${i + 1}</small></div></div><div class="rank-score">${p.score}</div></div>`;
     });
 
-    // Timer para nova partida
+    // CORREÇÃO CRÍTICA DO TIMER NEGATIVO
+    clearInterval(cooldownInterval);
     let cd = 15;
-    const interval = setInterval(() => {
+    const el = document.getElementById('cooldown-timer');
+    if (el) el.innerText = cd;
+
+    cooldownInterval = setInterval(() => {
         cd--;
-        const el = document.getElementById('cooldown-timer');
         if (el) el.innerText = cd;
-        if (cd <= 0 && isHost) { clearInterval(interval); hostStartGame(); }
+
+        if (cd <= 0) {
+            clearInterval(cooldownInterval);
+            if (isHost) hostStartGame();
+        }
     }, 1000);
 }
 

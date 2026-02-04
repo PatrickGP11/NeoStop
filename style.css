@@ -422,6 +422,44 @@ body {
     font-size: 1.2rem;
 }
 
+/* Botões pequenos do lado do código */
+.btn-icon-small {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid #334155;
+    color: var(--text-muted);
+    width: 45px;
+    height: 45px;
+    border-radius: 12px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.2s;
+    flex-shrink: 0;
+    /* Garante que não amasse no mobile */
+}
+
+.btn-icon-small:active {
+    transform: scale(0.9);
+}
+
+/* Estilo Específico do WhatsApp */
+.btn-icon-small.whatsapp {
+    background: rgba(37, 211, 102, 0.15);
+    /* Fundo verde transparente */
+    border-color: #25d366;
+    /* Borda verde */
+    color: #25d366;
+    /* Ícone verde */
+}
+
+.btn-icon-small.whatsapp:hover {
+    background: #25d366;
+    color: #0f172a;
+    /* Ícone escuro no hover */
+}
+
 .players-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(85px, 1fr));

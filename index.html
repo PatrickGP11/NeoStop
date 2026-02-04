@@ -7,7 +7,7 @@
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>NeoStop</title>
 
-     <link rel="shortcut icon" href="assets/icons8-anel-de-fogo-16.png" type="image/stop.png">
+    <link rel="shortcut icon" href="assets/icons8-anel-de-fogo-16.png" type="image/stop.png">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
 
@@ -95,27 +95,39 @@
                             <span id="display-room-id">...</span>
                             <i class="ri-file-copy-line"></i>
                         </div>
+
+                        <button class="btn-icon-small" onclick="forceNewID()" title="Novo Código">
+                            <i class="ri-refresh-line"></i>
+                        </button>
+
+                        <button class="btn-icon-small whatsapp" onclick="shareOnWhatsapp()" title="Enviar no Zap">
+                            <i class="ri-whatsapp-line"></i>
+                        </button>
                     </div>
+                    <p class="hint-text">Toque para copiar ou enviar</p>
+                    
                 </div>
+            </div>
+            </div>
 
-                <div class="players-area">
-                    <div class="section-header">Jogadores (<span id="player-count">1</span>)</div>
-                    <div id="players-grid" class="players-grid"></div>
-                </div>
+            <div class="players-area">
+                <div class="section-header">Jogadores (<span id="player-count">1</span>)</div>
+                <div id="players-grid" class="players-grid"></div>
+            </div>
 
-                <div id="host-controls" class="hidden mt-auto">
-                    <div class="mode-slider no-scrollbar">
-                        <button class="mode-pill selected" onclick="setMode('classico')">Clássico</button>
-                        <button class="mode-pill" onclick="setMode('futebol')">Futebol</button>
-                        <button class="mode-pill" onclick="setMode('geek')">Geek</button>
-                        <button class="mode-pill" onclick="setMode('zoeira')">Zoeira</button>
-                    </div>
-                    <button class="btn-neon full" onclick="hostStartGame()">GIRAR ROLETA 🎲</button>
+            <div id="host-controls" class="hidden mt-auto">
+                <div class="mode-slider no-scrollbar">
+                    <button class="mode-pill selected" onclick="setMode('classico')">Clássico</button>
+                    <button class="mode-pill" onclick="setMode('futebol')">Futebol</button>
+                    <button class="mode-pill" onclick="setMode('geek')">Geek</button>
+                    <button class="mode-pill" onclick="setMode('zoeira')">Zoeira</button>
                 </div>
+                <button class="btn-neon full" onclick="hostStartGame()">GIRAR ROLETA 🎲</button>
+            </div>
 
-                <div id="guest-waiting" class="hidden mt-auto status-pulse">
-                    Aguardando o Host...
-                </div>
+            <div id="guest-waiting" class="hidden mt-auto status-pulse">
+                Aguardando o Host...
+            </div>
             </div>
         </section>
 
